@@ -1,0 +1,132 @@
+BACKUP ~portraitcolors/backup~
+AUTHOR ~meowdog, tipun (https://github.com/anongit/portraitcolors/issues)~
+VERSION ~0.1.0~
+
+/////////////////////////////////////////////////////////////////////////////////
+///  CUSTOM PORTRAIT COLORS
+/////////////////////////////////////////////////////////////////////////////////
+BEGIN ~Custom portrait colors~
+
+INCLUDE ~%MOD_FOLDER%/lib_ini.tpa~
+LAF SFO_read_ini_file RET_ARRAY colors = SFO_reserved_ini_hash END
+
+ACTION_MATCH ~%WEIDU_OS%~
+WITH
+  ~win32~ WHEN FILE_EXISTS "SiegeOfDragonspear.exe"
+  BEGIN OUTER_SPRINT game_exe "SiegeOfDragonspear.exe" END
+  ~win32~ WHEN GAME_IS "bgee bg2ee eet"
+  BEGIN OUTER_SPRINT game_exe "Baldur.exe" END
+  ~win32~ WHEN GAME_IS "iwdee"
+  BEGIN OUTER_SPRINT game_exe "Icewind.exe" END
+  ~win32~ WHEN GAME_IS "pstee"
+  BEGIN OUTER_SPRINT game_exe "Torment.exe" END
+
+  ~unix~ WHEN GAME_IS "bgee"
+  BEGIN OUTER_SPRINT game_exe "BaldursGate" END
+  ~unix~ WHEN GAME_IS "bg2ee eet"
+  BEGIN OUTER_SPRINT game_exe "BaldursGateII" END
+
+  ~osx~
+  BEGIN
+    COPY - GLOB ~*.app/Contents/MacOS/*-macOS~ ~%MOD_FOLDER%/tmp~
+    OUTER_SPRINT game_exe ~%SOURCE_FILESPEC%~
+  END
+
+  DEFAULT ABORT ~unsupported os '%WEIDU_OS%' or game~
+END
+
+ACTION_IF NOT FILE_EXISTS ~%game_exe%~ BEGIN
+  ABORT ~game exe file not found %game_exe%~
+END
+
+OUTER_SET border_color = 0
+OUTER_WHILE (border_color == 0) BEGIN
+  PRINT ~Pick the portrait border color for selected characters:
+  0) custom (portraitcolors.ini > colors > border_selected)
+  1) default (green / #00fa00)
+  2) red
+  3) yellow
+  4) orange
+  5) brown
+  6) gold
+  7) purple
+  8) turquoise
+  9) blue
+  10) gray
+  11) black
+  ~
+  ACTION_READLN ~choice~
+  ACTION_MATCH ~%choice%~
+  WITH
+    ~0~  BEGIN OUTER_SPRINT border_color $colors("border_selected") END
+    ~1~  BEGIN OUTER_SPRINT border_color 0x0000fa00 END
+    ~2~  BEGIN OUTER_SPRINT border_color 0x000000ff END
+    ~3~  BEGIN OUTER_SPRINT border_color 0x0000ffff END
+    ~4~  BEGIN OUTER_SPRINT border_color 0x0000a5ff END
+    ~5~  BEGIN OUTER_SPRINT border_color 0x00004b96 END
+    ~6~  BEGIN OUTER_SPRINT border_color 0x0000d7ff END
+    ~7~  BEGIN OUTER_SPRINT border_color 0x00800080 END
+    ~8~  BEGIN OUTER_SPRINT border_color 0x00d0e040 END
+    ~9~  BEGIN OUTER_SPRINT border_color 0x00ff0000 END
+    ~10~ BEGIN OUTER_SPRINT border_color 0x00808080 END
+    ~11~ BEGIN OUTER_SPRINT border_color 0x00000000 END
+    DEFAULT PRINT "Invalid choice: '%choice%'"
+  END
+END
+
+OUTER_SPRINT hp_old_bytes ~~
+OUTER_INNER_PATCH_SAVE ~hp_old_bytes~ ~%hp_old_bytes%~ BEGIN
+  INSERT_BYTES 0x00 16
+  WRITE_LONG 0x00 0x00ffffff
+  WRITE_LONG 0x04 0x0000fa00
+  WRITE_LONG 0x08 0x0000ffff
+  WRITE_LONG 0x0c 0x000080ff
+END
+
+OUTER_SPRINT hp_new_bytes ~~
+OUTER_INNER_PATCH_SAVE ~hp_new_bytes~ ~%hp_new_bytes%~ BEGIN
+  INSERT_BYTES 0x00 16
+  WRITE_LONG 0x00 $colors("hitpoints_eq_100")
+  WRITE_LONG 0x04 $colors("hitpoints_ge_75")
+  WRITE_LONG 0x08 $colors("hitpoints_ge_50")
+  WRITE_LONG 0x0c $colors("hitpoints_ge_25")
+END
+
+OUTER_SPRINT border_old_bytes ~~
+OUTER_INNER_PATCH_SAVE ~border_old_bytes~ ~%border_old_bytes%~ BEGIN
+  INSERT_BYTES 0x00 32
+  WRITE_LONG 0x00 0x00008000
+  WRITE_LONG 0x04 0x00c66473
+  WRITE_LONG 0x08 0x00ffb7be
+  WRITE_LONG 0x0c 0x002000ff
+  WRITE_LONG 0x10 0x00ffff40
+  WRITE_LONG 0x14 0x0000fa00
+  WRITE_LONG 0x18 0x00ffffff
+  WRITE_LONG 0x1c 0x0000ffff
+END
+
+OUTER_SPRINT border_new_bytes ~~
+OUTER_INNER_PATCH_SAVE ~border_new_bytes~ ~%border_new_bytes%~ BEGIN
+  INSERT_BYTES 0x00 32
+  WRITE_LONG 0x00 0x00008000
+  WRITE_LONG 0x04 0x00c66473
+  WRITE_LONG 0x08 0x00ffb7be
+  WRITE_LONG 0x0c 0x002000ff
+  WRITE_LONG 0x10 0x00ffff40
+  WRITE_LONG 0x14 border_color
+  WRITE_LONG 0x18 0x00ffffff
+  WRITE_LONG 0x1c 0x0000ffff
+END
+
+ACTION_IF
+  ~%hp_old_bytes%~ STRING_EQUAL ~%hp_new_bytes%~ AND
+  ~%border_old_bytes%~ STRING_EQUAL ~%border_new_bytes%~
+BEGIN
+  ABORT "No change in colors, aborting..."
+END
+
+PRINT ~Target file: '%game_exe%'~
+COPY ~%game_exe%~ ~%game_exe%~
+  REPLACE_TEXTUALLY EXACT_MATCH ~%hp_old_bytes%~ ~%hp_new_bytes%~ EVALUATE_BUFFER
+  REPLACE_TEXTUALLY EXACT_MATCH ~%border_old_bytes%~ ~%border_new_bytes%~ EVALUATE_BUFFER
+BUT_ONLY_IF_IT_CHANGES

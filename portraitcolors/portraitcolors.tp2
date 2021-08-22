@@ -1,43 +1,15 @@
 BACKUP ~portraitcolors/backup~
 AUTHOR ~meowdog, tipun (https://github.com/anongit/portraitcolors/issues)~
-VERSION ~0.1.0~
+VERSION ~0.1.1~
 
 /////////////////////////////////////////////////////////////////////////////////
 ///  CUSTOM PORTRAIT COLORS
 /////////////////////////////////////////////////////////////////////////////////
 BEGIN ~Custom portrait colors~
 
+INCLUDE ~%MOD_FOLDER%/find_exe.tpa~
 INCLUDE ~%MOD_FOLDER%/lib_ini.tpa~
 LAF SFO_read_ini_file RET_ARRAY colors = SFO_reserved_ini_hash END
-
-ACTION_MATCH ~%WEIDU_OS%~
-WITH
-  ~win32~ WHEN FILE_EXISTS "SiegeOfDragonspear.exe"
-  BEGIN OUTER_SPRINT game_exe "SiegeOfDragonspear.exe" END
-  ~win32~ WHEN GAME_IS "bgee bg2ee eet"
-  BEGIN OUTER_SPRINT game_exe "Baldur.exe" END
-  ~win32~ WHEN GAME_IS "iwdee"
-  BEGIN OUTER_SPRINT game_exe "Icewind.exe" END
-  ~win32~ WHEN GAME_IS "pstee"
-  BEGIN OUTER_SPRINT game_exe "Torment.exe" END
-
-  ~unix~ WHEN GAME_IS "bgee"
-  BEGIN OUTER_SPRINT game_exe "BaldursGate" END
-  ~unix~ WHEN GAME_IS "bg2ee eet"
-  BEGIN OUTER_SPRINT game_exe "BaldursGateII" END
-
-  ~osx~
-  BEGIN
-    COPY - GLOB ~*.app/Contents/MacOS/*-macOS~ ~%MOD_FOLDER%/tmp~
-    OUTER_SPRINT game_exe ~%SOURCE_FILESPEC%~
-  END
-
-  DEFAULT ABORT ~unsupported os '%WEIDU_OS%' or game~
-END
-
-ACTION_IF NOT FILE_EXISTS ~%game_exe%~ BEGIN
-  ABORT ~game exe file not found %game_exe%~
-END
 
 OUTER_SET border_color = 0
 OUTER_WHILE (border_color == 0) BEGIN
@@ -125,8 +97,22 @@ BEGIN
   ABORT "No change in colors, aborting..."
 END
 
-PRINT ~Target file: '%game_exe%'~
+
 COPY ~%game_exe%~ ~%game_exe%~
-  REPLACE_TEXTUALLY EXACT_MATCH ~%hp_old_bytes%~ ~%hp_new_bytes%~ EVALUATE_BUFFER
-  REPLACE_TEXTUALLY EXACT_MATCH ~%border_old_bytes%~ ~%border_new_bytes%~ EVALUATE_BUFFER
+
+  PATCH_IF NOT ~%hp_old_bytes%~ STRING_EQUAL ~%hp_new_bytes%~ BEGIN
+    REPLACE_TEXTUALLY EXACT_MATCH ~%hp_old_bytes%~ ~%hp_new_bytes%~ EVALUATE_BUFFER
+  END
+
+  PATCH_IF VARIABLE_IS_SET border_color_offset BEGIN
+    WRITE_LONG border_color_offset border_color
+  END ELSE
+  PATCH_IF NOT ~%border_old_bytes%~ STRING_EQUAL ~%border_new_bytes%~ BEGIN
+    REPLACE_TEXTUALLY EXACT_MATCH ~%border_old_bytes%~ ~%border_new_bytes%~ EVALUATE_BUFFER
+  END
+
+  PATCH_IF VARIABLE_IS_SET cmarker_color_offset BEGIN
+    WRITE_LONG cmarker_color_offset border_color
+  END
+
 BUT_ONLY_IF_IT_CHANGES

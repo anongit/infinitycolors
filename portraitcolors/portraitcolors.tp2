@@ -1,6 +1,6 @@
 BACKUP ~portraitcolors/backup~
 AUTHOR ~meowdog, tipun (https://github.com/anongit/portraitcolors/issues)~
-VERSION ~0.1.1~
+VERSION ~0.2.0~
 
 /////////////////////////////////////////////////////////////////////////////////
 ///  CUSTOM PORTRAIT COLORS
@@ -116,3 +116,92 @@ COPY ~%game_exe%~ ~%game_exe%~
   END
 
 BUT_ONLY_IF_IT_CHANGES
+
+/////////////////////////////////////////////////////////////////////////////////
+///  COLORIZE WORLD MESSAGES
+/////////////////////////////////////////////////////////////////////////////////
+BEGIN ~Colorize world messages~
+REQUIRE_PREDICATE GAME_IS ~bgee bg2ee eet~ ~BGEE/BG2EE/EET not found, skipping~
+
+OUTER_SET exp1_strref = 17574
+OUTER_SET exp2_strref = 17575
+OUTER_SET exp3_strref = 46858
+OUTER_SET journal_strref = 11359
+OUTER_SET map_strref = 11360
+OUTER_SET gold1_strref = 17572
+OUTER_SET gold2_strref = 17573
+
+
+ACTION_IF GAME_IS ~bgee~ BEGIN
+  OUTER_SET exp1_strref = 24512
+  OUTER_SET exp2_strref = 24513
+  OUTER_SET exp3_strref = 24528
+  OUTER_SET journal_strref = 24522
+  OUTER_SET map_strref = 24524
+  OUTER_SET gold1_strref = 24510
+  OUTER_SET gold2_strref = 24511
+END
+
+// The Party Has Gained Experience
+ACTION_GET_STRREF exp1_strref str
+OUTER_SPRINT ~str~ ~^0xFFA6D000%str%^-~
+STRING_SET_EVALUATE exp1_strref ~%str%~
+
+// The Party Has Lost Experience
+ACTION_GET_STRREF exp2_strref str
+OUTER_SPRINT ~str~ ~^0xFFA6D000%str%^-~
+STRING_SET_EVALUATE exp2_strref ~%str%~
+
+// has gained <EXPERIENCEAMOUNT> quest experience points.
+ACTION_GET_STRREF exp3_strref str
+OUTER_SPRINT ~str~ ~^0xFFA6D000%str%^-~
+OUTER_INNER_PATCH_SAVE ~str~ ~%str%~ BEGIN
+  REPLACE_TEXTUALLY ~ <EXPERIENCEAMOUNT> ~ ~^- <EXPERIENCEAMOUNT> ^0xFFA6D000~
+END
+STRING_SET_EVALUATE exp3_strref ~%str%~
+
+// Your journal has been updated
+ACTION_GET_STRREF journal_strref str
+OUTER_SPRINT ~str~ ~^0xFF013F93%str%^-~
+STRING_SET_EVALUATE journal_strref ~%str%~
+
+// The Party Has Gained Gold
+ACTION_GET_STRREF gold1_strref str
+OUTER_SPRINT ~str~ ~^0xFF46C8F0%str%^-~
+STRING_SET_EVALUATE gold1_strref ~%str%~
+
+// The Party Has Lost Gold
+ACTION_GET_STRREF gold2_strref str
+OUTER_SPRINT ~str~ ~^0xFF46C8F0%str%^-~
+STRING_SET_EVALUATE gold2_strref ~%str%~
+
+// The Party Has Gained An Item: <ITEM>
+ACTION_GET_STRREF 17576 str
+OUTER_INNER_PATCH_SAVE ~str~ ~%str%~ BEGIN
+  REPLACE_TEXTUALLY ~:[ %TAB%]<ITEM>~ ~^-: <ITEM>~
+END
+OUTER_SPRINT ~str~ ~^0xFF46F0C6%str%~
+STRING_SET_EVALUATE 17576 ~%str%~
+
+// The Party Has Lost An Item: <ITEM>
+ACTION_GET_STRREF 17577 str
+OUTER_INNER_PATCH_SAVE ~str~ ~%str%~ BEGIN
+  REPLACE_TEXTUALLY ~:[ %TAB%]<ITEM>~ ~^-: <ITEM>~
+END
+OUTER_SPRINT ~str~ ~^0xFF46F0C6%str%~
+STRING_SET_EVALUATE 17577 ~%str%~
+
+// Your map has been updated.
+ACTION_GET_STRREF map_strref str
+OUTER_SPRINT ~str~ ~^0xFF0091FF%str%^-~
+STRING_SET_EVALUATE map_strref ~%str%~
+
+// Gather your party before venturing forth.
+ACTION_GET_STRREF 6115 str
+OUTER_SPRINT ~str~ ~^0xFFA97F00%str%^-~
+STRING_SET_EVALUATE 6115 ~%str%~
+
+// You must gather your party before venturing forth.
+ACTION_GET_STRREF 16484 str
+OUTER_SPRINT ~str~ ~^0xFFA97F00%str%^-~
+STRING_SET_EVALUATE 16484 ~%str%~

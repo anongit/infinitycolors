@@ -1,0 +1,73 @@
+ACTION_IF ~%WEIDU_OS%~ STRING_EQUAL "win32" BEGIN
+  ACTION_IF FILE_EXISTS "Baldur.exe"
+  BEGIN OUTER_SPRINT game_exe "Baldur.exe" END
+
+  ELSE ACTION_IF FILE_EXISTS "icewind.exe"
+  BEGIN OUTER_SPRINT game_exe "icewind.exe" END
+
+  ELSE ACTION_IF FILE_EXISTS "Torment.exe"
+  BEGIN OUTER_SPRINT game_exe "Torment.exe" END
+
+  ELSE ACTION_IF FILE_EXISTS "SiegeOfDragonspear.exe"
+  BEGIN OUTER_SPRINT game_exe "SiegeOfDragonspear.exe" END
+
+  // Original games
+  ELSE ACTION_IF FILE_EXISTS "bgmain.exe" // BG2
+  BEGIN OUTER_SPRINT game_exe "bgmain.exe" END
+
+  ELSE ACTION_IF FILE_EXISTS "bgmain2.exe" // ToSC
+  BEGIN OUTER_SPRINT game_exe "bgmain2.exe" END
+
+  ELSE ACTION_IF FILE_EXISTS "idmain.exe" // IWD
+  BEGIN OUTER_SPRINT game_exe "idmain.exe" END
+
+  ELSE ACTION_IF FILE_EXISTS "iwd2.exe" // IWD2
+  BEGIN OUTER_SPRINT game_exe "iwd2.exe" END
+
+  OUTER_SET include_found = 0
+  ACTION_IF VARIABLE_IS_SET game_exe BEGIN
+    AT_NOW exit_code "certutil -hashfile %game_exe% MD5 > %MOD_FOLDER%\tmp"
+    ACTION_IF exit_code == 0 BEGIN
+      COPY - "%MOD_FOLDER%/tmp" "%workspace%"
+      REPLACE_EVALUATE ~^\([0-9a-fA-F]+\)%WNL%*$~
+      BEGIN SPRINT include_file "%MOD_FOLDER%/data/win/%MATCH1%.tph" END
+      ~~
+
+      ACTION_IF VARIABLE_IS_SET include_file BEGIN
+        OUTER_SET include_found = 1
+        ACTION_IF FILE_EXISTS "%include_file%" BEGIN
+          INCLUDE "%include_file%"
+        END ELSE BEGIN
+          LOG "include file doesn't exist: '%include_file%'"
+        END
+        AT_NOW "del %MOD_FOLDER%\tmp"
+      END ELSE BEGIN
+        LOG "failed to get md5sum of '%game_exe%' from certutil output"
+      END
+    END
+
+    // certutil is probably not available
+    // or failed to parse certutil output
+    ACTION_IF include_found == 0 BEGIN
+      ACTION_BASH_FOR "%MOD_FOLDER%/data/win" ".*\.tph" BEGIN
+        ACTION_IF FILE_MD5 $game_exe() $BASH_FOR_RES() BEGIN
+          INCLUDE "%BASH_FOR_FILESPEC%"
+        END
+      END
+    END
+  END
+
+// linux / macos
+END ELSE BEGIN
+  AT_NOW exit_code "sh %MOD_FOLDER%/find_exe.sh"
+  ACTION_IF exit_code == 0 BEGIN
+    INCLUDE "%MOD_FOLDER%/tmp"
+    AT_NOW "rm %MOD_FOLDER%/tmp"
+  END
+END
+
+ACTION_IF NOT VARIABLE_IS_SET game_exe BEGIN
+  ABORT ~unsupported game~
+END
+
+PRINT ~Target file: '%game_exe%'~

@@ -1,0 +1,11 @@
+// BG1:EE BG2:EE IWD:EE 2.6.6.0
+
+ACTION_DEFINE_ASSOCIATIVE_ARRAY offsets BEGIN
+  border_selected => 0x8c0700
+  cmarker_selected => 0x435615
+
+  hitpoints_eq_100 => 0x426739
+  hitpoints_ge_75  => 0x426749
+  hitpoints_ge_50  => 0x4267a1
+  hitpoints_ge_25  => 0x42587d
+END

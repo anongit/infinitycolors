@@ -1,0 +1,5 @@
+// PST:EE 3.1.4
+
+ACTION_DEFINE_ASSOCIATIVE_ARRAY offsets BEGIN
+  cmarker_selected => 0x399a4f
+END

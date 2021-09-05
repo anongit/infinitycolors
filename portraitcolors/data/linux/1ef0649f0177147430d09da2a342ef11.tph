@@ -1,0 +1,6 @@
+// BG1:EE 2.5-23121 amd64
+
+ACTION_DEFINE_ASSOCIATIVE_ARRAY offsets BEGIN
+  border_selected  => 0x9ed098
+  cmarker_selected => 0x5c1b80
+END

@@ -7,7 +7,7 @@ VERSION ~0.2.0~
 /////////////////////////////////////////////////////////////////////////////////
 BEGIN ~Custom portrait colors~
 
-INCLUDE ~%MOD_FOLDER%/find_exe.tpa~
+INCLUDE ~%MOD_FOLDER%/find_exe.tph~
 INCLUDE ~%MOD_FOLDER%/lib_ini.tpa~
 LAF SFO_read_ini_file RET_ARRAY colors = SFO_reserved_ini_hash END
 
@@ -44,6 +44,11 @@ OUTER_WHILE (border_color == 0) BEGIN
     ~11~ BEGIN OUTER_SPRINT border_color 0x00000000 END
     DEFAULT PRINT "Invalid choice: '%choice%'"
   END
+END
+
+OUTER_SPRINT $colors("border_selected") "%border_color%"
+ACTION_IF NOT VARIABLE_IS_SET $colors("cmarker_selected") BEGIN
+  OUTER_SPRINT $colors("cmarker_selected") "%border_color%"
 END
 
 OUTER_SPRINT hp_old_bytes ~~
@@ -85,34 +90,30 @@ OUTER_INNER_PATCH_SAVE ~border_new_bytes~ ~%border_new_bytes%~ BEGIN
   WRITE_LONG 0x08 0x00ffb7be
   WRITE_LONG 0x0c 0x002000ff
   WRITE_LONG 0x10 0x00ffff40
-  WRITE_LONG 0x14 border_color
+  WRITE_LONG 0x14 $colors("border_selected")
   WRITE_LONG 0x18 0x00ffffff
   WRITE_LONG 0x1c 0x0000ffff
 END
 
-ACTION_IF
-  ~%hp_old_bytes%~ STRING_EQUAL ~%hp_new_bytes%~ AND
-  ~%border_old_bytes%~ STRING_EQUAL ~%border_new_bytes%~
-BEGIN
-  ABORT "No change in colors, aborting..."
-END
-
 
 COPY ~%game_exe%~ ~%game_exe%~
-
-  PATCH_IF NOT ~%hp_old_bytes%~ STRING_EQUAL ~%hp_new_bytes%~ BEGIN
+  PATCH_IF NOT (
+    ~%hp_old_bytes%~ STRING_EQUAL ~%hp_new_bytes%~
+    || GAME_IS "pst pstee"
+    || VARIABLE_IS_SET $offsets("hitpoints_eq_100")
+  ) BEGIN
     REPLACE_TEXTUALLY EXACT_MATCH ~%hp_old_bytes%~ ~%hp_new_bytes%~ EVALUATE_BUFFER
   END
 
-  PATCH_IF VARIABLE_IS_SET border_color_offset BEGIN
-    WRITE_LONG border_color_offset border_color
-  END ELSE
-  PATCH_IF NOT ~%border_old_bytes%~ STRING_EQUAL ~%border_new_bytes%~ BEGIN
+  PATCH_IF NOT (
+    ~%border_old_bytes%~ STRING_EQUAL ~%border_new_bytes%~
+    || VARIABLE_IS_SET $offsets("border_selected")
+  ) BEGIN
     REPLACE_TEXTUALLY EXACT_MATCH ~%border_old_bytes%~ ~%border_new_bytes%~ EVALUATE_BUFFER
   END
 
-  PATCH_IF VARIABLE_IS_SET cmarker_color_offset BEGIN
-    WRITE_LONG cmarker_color_offset border_color
+  PHP_EACH offsets AS key => offset BEGIN
+    WRITE_LONG offset $colors("%key%")
   END
 
 BUT_ONLY_IF_IT_CHANGES

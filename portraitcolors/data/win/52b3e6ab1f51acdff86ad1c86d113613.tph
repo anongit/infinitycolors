@@ -1,0 +1,5 @@
+// IWD:EE 2.6.6.0
+
+ACTION_DEFINE_ASSOCIATIVE_ARRAY offsets BEGIN
+  cmarker_selected => 0x3c0776
+END

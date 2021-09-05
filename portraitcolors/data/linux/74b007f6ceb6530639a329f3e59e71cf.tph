@@ -1,0 +1,6 @@
+// PST:EE 3.1.4-26532 amd64
+
+ACTION_DEFINE_ASSOCIATIVE_ARRAY offsets BEGIN
+  border_selected  => 0xad0530
+  cmarker_selected => 0x671c33
+END

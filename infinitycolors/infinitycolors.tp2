@@ -1,5 +1,5 @@
-BACKUP ~portraitcolors/backup~
-AUTHOR ~meowdog, tipun (https://github.com/anongit/portraitcolors/issues)~
+BACKUP ~infinitycolors/backup~
+AUTHOR ~meowdog, tipun (https://github.com/anongit/infinitycolors/issues)~
 VERSION ~0.2.0~
 
 /////////////////////////////////////////////////////////////////////////////////
@@ -14,7 +14,7 @@ LAF SFO_read_ini_file RET_ARRAY colors = SFO_reserved_ini_hash END
 OUTER_SET border_color = 0
 OUTER_WHILE (border_color == 0) BEGIN
   PRINT ~Pick the portrait border color for selected characters:
-  0) custom (portraitcolors.ini > colors > border_selected)
+  0) custom (infinitycolors.ini > colors > border_selected)
   1) default (green / #00fa00)
   2) red
   3) yellow

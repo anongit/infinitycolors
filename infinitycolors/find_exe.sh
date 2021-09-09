@@ -3,7 +3,7 @@
 set -ue
 
 OS="$(uname -s)"
-mod_folder="portraitcolors"
+mod_folder="infinitycolors"
 outfile="$mod_folder/tmp"
 
 if [ "$OS" = "Darwin" ]; then
